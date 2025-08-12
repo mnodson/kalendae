@@ -1,0 +1,74 @@
+:host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  //pointer-events: none;
+}
+
+.grouped-fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+.event-dialog {
+  position: absolute;
+  width: 40%;
+  top: 5%;
+  height: 45rem;
+  background: #fff;
+  border: 1px solid #bdbdbd;
+  left: calc(50vw - 25%);
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  opacity: 1;
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: grid;
+  grid-template-rows: 1fr 3fr 3rem;
+
+  @starting-style {
+    top: 0;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.dialog-header {
+  h2 {
+    margin: 0;
+  }
+}
+
+.dialog-content {
+  display: grid;
+
+  .event-date {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    color: #615b5b;
+    justify-content: center;
+
+    > svg {
+      color: #009688;
+    }
+
+    .date-distance {
+      color: #009688;
+      font-variant: petite-caps;
+    }
+  }
+}
+
+.dialog-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+
+  > :first-child {
+    grid-column-start: 3;
+  }
+}

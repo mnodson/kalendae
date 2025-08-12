@@ -1,0 +1,64 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <div class="navigation-buttons">
+      <button (click)="prevMonth()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+        >
+          <!-- Icon from Google Material Icons by Material Design Authors - https://github.com/material-icons/material-icons/blob/master/LICENSE -->
+          <path
+            fill="currentColor"
+            d="M17.77 3.77L16 2L6 12l10 10l1.77-1.77L9.54 12z"
+          />
+        </svg>
+      </button>
+      <button (click)="today()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+        >
+          <!-- Icon from Google Material Icons by Material Design Authors - https://github.com/material-icons/material-icons/blob/master/LICENSE -->
+          <path
+            fill="currentColor"
+            d="M17 13h-5v5h5zM16 2v2H8V2H6v2H3.01L3 22h18V4h-3V2zm3 18H5V9h14z"
+          />
+        </svg>
+      </button>
+      <button (click)="nextMonth()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+        >
+          <!-- Icon from Google Material Icons by Material Design Authors - https://github.com/material-icons/material-icons/blob/master/LICENSE -->
+          <path
+            fill="currentColor"
+            d="M6.23 20.23L8 22l10-10L8 2L6.23 3.77L14.46 12z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="month-name">{{ currentMonth | date : "MMMM yyyy" }}</div>
+  </div>
+  <div class="calendar-grid">
+    <div class="days">
+      @for(day of daysOfWeek; track day) {
+      <div class="day">{{ day }}</div>
+      }
+    </div>
+
+    <div class="dates" style="--c-offset: {{ startOfMonthOffset }}">
+      @for(date of datesInCurrentMonth; track date; let idx = $index) {
+      <div class="date" [ngClass]="{ today: isToday(date) }" (click)="selectDate(date)">
+        {{ date | date : "d" }}
+      </div>
+      }
+    </div>
+  </div>
+</div>

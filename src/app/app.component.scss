@@ -1,0 +1,45 @@
+.app-container {
+  .app-header {
+    grid-area: header;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .app-calendar {
+    grid-area: calendar;
+  }
+
+  .app-week-view {
+    grid-area: week-view;
+  }
+
+  &.fullscreen {
+    .app-calendar {
+      display: none;
+    }
+
+    grid-template-columns: 0fr 1fr;
+  }
+
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: 6rem 1fr;
+  grid-template-areas:
+    "header header"
+    "calendar week-view";
+}
+
+.app-header {
+  background-color: #f8f9fa;
+  padding: 0 20px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.app-content {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+}
