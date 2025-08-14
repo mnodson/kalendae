@@ -44,7 +44,7 @@
   </div>
 
   <div class="app-calendar">
-    <app-calendar (openEventDialog)="handleEventDialogOpen($event)"></app-calendar>
+    <app-calendar (openEventDialog)="handleEventDialogOpen($event)" (eventClicked)="handleEventClick($event)"></app-calendar>
   </div>
 
   <div class="app-week-view">

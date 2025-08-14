@@ -67,3 +67,50 @@
     </div>
   </div>
 </div>
+
+<div class="upcoming-events-section">
+  <div class="section-header">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M12 8v4l2 2m6-6a9 9 0 1 1-18 0a9 9 0 0 1 18 0" />
+    </svg>
+    <h4>Upcoming Events</h4>
+  </div>
+  
+  <div class="upcoming-events-grid">
+    @for(member of familyMembers; track member; let idx = $index) {
+      <div class="member-upcoming-section">
+        <div class="member-header">
+          <img src="images/family/avatar_{{ idx }}.png" alt="{{ member }}" />
+          <span class="member-name">{{ member }}</span>
+        </div>
+        
+        <div class="upcoming-events-list">
+          @for(event of getUpcomingEventsForMember(member); track event.id) {
+            <div class="upcoming-event-item" (click)="onEventClick(event)">
+              <div class="event-date-badge">{{ formatUpcomingEventDate(event) }}</div>
+              <div class="event-details">
+                <div class="event-title">{{ event.title }}</div>
+                <div class="event-time">{{ formatEventTime(event) }}</div>
+              </div>
+              @if(getOtherParticipants(event, member).length > 0) {
+                <div class="event-participants">
+                  @for(participant of getOtherParticipants(event, member); track participant) {
+                    <img 
+                      src="images/family/avatar_{{ getFamilyMemberAvatarIndex(participant) }}.png" 
+                      alt="{{ participant }}"
+                      class="participant-avatar-small"
+                      title="{{ participant }}"
+                    />
+                  }
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="no-upcoming-events">No upcoming events</div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

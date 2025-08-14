@@ -80,6 +80,27 @@ export class WeekViewComponent implements OnInit {
     this.loadEvents();
   }
 
+  prevWeek(): void {
+    const currentWeekStart = this.currentWeek[0];
+    const prevWeekStart = new Date(currentWeekStart);
+    prevWeekStart.setDate(currentWeekStart.getDate() - 7);
+    this.generateWeekView(prevWeekStart);
+  }
+
+  nextWeek(): void {
+    const currentWeekStart = this.currentWeek[0];
+    const nextWeekStart = new Date(currentWeekStart);
+    nextWeekStart.setDate(currentWeekStart.getDate() + 7);
+    this.generateWeekView(nextWeekStart);
+  }
+
+  getCurrentWeekLabel(): string {
+    if (this.currentWeek.length === 0) return '';
+    const startDate = this.currentWeek[0];
+    const endDate = this.currentWeek[6];
+    return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+  }
+
   getEventsForDateAndParticipant(date: Date, participant: string): Event[] {
     const filteredEvents = this.events.filter(event => {
       if (!event.startTime) return false;
@@ -408,6 +429,56 @@ export class WeekViewComponent implements OnInit {
       const bStartTime = new Date(b.startTime!).getTime();
       return aStartTime - bStartTime;
     });
+  }
+
+  getUpcomingEventsForMember(member: string, daysAhead: number = 7): Event[] {
+    const today = startOfDay(new Date());
+    const futureDate = addDays(today, daysAhead);
+
+    const upcomingEvents = this.events.filter(event => {
+      if (!event.startTime || !event.participants.includes(member)) return false;
+      
+      let eventDate: Date;
+      if (event.isAllDay) {
+        const dateString = event.startTime.split('T')[0];
+        const [year, month, day] = dateString.split('-').map(Number);
+        eventDate = new Date(year, month - 1, day);
+      } else {
+        eventDate = startOfDay(new Date(event.startTime));
+      }
+      
+      return eventDate > today && eventDate <= futureDate;
+    });
+
+    return upcomingEvents.sort((a, b) => {
+      const aDate = new Date(a.startTime!).getTime();
+      const bDate = new Date(b.startTime!).getTime();
+      return aDate - bDate;
+    }).slice(0, 3); // Limit to 3 upcoming events per member
+  }
+
+  formatUpcomingEventDate(event: Event): string {
+    if (!event.startTime) return '';
+    
+    let eventDate: Date;
+    if (event.isAllDay) {
+      const dateString = event.startTime.split('T')[0];
+      const [year, month, day] = dateString.split('-').map(Number);
+      eventDate = new Date(year, month - 1, day);
+    } else {
+      eventDate = new Date(event.startTime);
+    }
+    
+    const today = startOfDay(new Date());
+    const tomorrow = addDays(today, 1);
+    
+    if (isSameDay(eventDate, tomorrow)) {
+      return 'Tomorrow';
+    } else if (eventDate.getTime() - today.getTime() < 7 * 24 * 60 * 60 * 1000) {
+      return format(eventDate, 'EEEE'); // Day name for this week
+    } else {
+      return format(eventDate, 'MMM d'); // Month and day for further dates
+    }
   }
 
 }

@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
-import { endOfHour, roundToNearestHours, isSameDay, startOfDay } from 'date-fns';
+import { endOfHour, roundToNearestHours, isSameDay, startOfDay, addDays, format } from 'date-fns';
 
 interface Event {
   id: string;
@@ -22,6 +22,7 @@ interface Event {
 })
 export class CalendarComponent implements OnInit {
   @Output() openEventDialog = new EventEmitter<Date>();
+  @Output() eventClicked = new EventEmitter<Event>();
 
   days: any[] = [];
   dates: any[] = [];
@@ -186,5 +187,83 @@ export class CalendarComponent implements OnInit {
       'Julia': '#9c27b0'  // Purple
     };
     return colorMap[memberName] || '#757575';
+  }
+
+  getUpcomingEventsForMember(member: string, daysAhead: number = 7): Event[] {
+    const today = startOfDay(new Date());
+    const futureDate = addDays(today, daysAhead);
+
+    const upcomingEvents = this.events.filter(event => {
+      if (!event.startTime || !event.participants.includes(member)) return false;
+      
+      let eventDate: Date;
+      if (event.isAllDay) {
+        const dateString = event.startTime.split('T')[0];
+        const [year, month, day] = dateString.split('-').map(Number);
+        eventDate = new Date(year, month - 1, day);
+      } else {
+        eventDate = startOfDay(new Date(event.startTime));
+      }
+      
+      return eventDate > today && eventDate <= futureDate;
+    });
+
+    return upcomingEvents.sort((a, b) => {
+      const aDate = new Date(a.startTime!).getTime();
+      const bDate = new Date(b.startTime!).getTime();
+      return aDate - bDate;
+    }).slice(0, 3); // Limit to 3 upcoming events per member
+  }
+
+  formatUpcomingEventDate(event: Event): string {
+    if (!event.startTime) return '';
+    
+    let eventDate: Date;
+    if (event.isAllDay) {
+      const dateString = event.startTime.split('T')[0];
+      const [year, month, day] = dateString.split('-').map(Number);
+      eventDate = new Date(year, month - 1, day);
+    } else {
+      eventDate = new Date(event.startTime);
+    }
+    
+    const today = startOfDay(new Date());
+    const tomorrow = addDays(today, 1);
+    
+    if (isSameDay(eventDate, tomorrow)) {
+      return 'Tomorrow';
+    } else if (eventDate.getTime() - today.getTime() < 7 * 24 * 60 * 60 * 1000) {
+      return format(eventDate, 'EEEE'); // Day name for this week
+    } else {
+      return format(eventDate, 'MMM d'); // Month and day for further dates
+    }
+  }
+
+  formatEventTime(event: Event): string {
+    if (event.isAllDay) {
+      return 'All Day';
+    }
+    const startTime = new Date(event.startTime!);
+    const endTime = new Date(event.endTime!);
+    return `${format(startTime, 'h:mm a')} - ${format(endTime, 'h:mm a')}`;
+  }
+
+  getOtherParticipants(event: Event, currentMember: string): string[] {
+    return event.participants.filter(participant => participant !== currentMember);
+  }
+
+  getFamilyMemberAvatarIndex(memberName: string): number {
+    const memberMap: { [key: string]: number } = {
+      'Donna': 0,
+      'Mark': 1,
+      'Zara': 2,
+      'Macy': 3,
+      'Julia': 4
+    };
+    return memberMap[memberName] ?? 0;
+  }
+
+  onEventClick(event: Event): void {
+    this.eventClicked.emit(event);
   }
 }
