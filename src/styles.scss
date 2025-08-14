@@ -23,7 +23,9 @@ button {
   justify-content: center;
 
   &.primary {
-    color: #29b6f6;
+    font-size: 1rem;
+    background: #C8E6C9;
+    color: #546E7A;
   }
 
   &:hover {

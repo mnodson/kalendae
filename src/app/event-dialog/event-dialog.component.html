@@ -85,11 +85,11 @@
       <div>Who's attending?</div>
       <div class="participant-list">
         @for(member of eventAttendance; track member.name; let idx = $index) {
-        <div class="participant">
+        <div class="participant"[ngClass]="{ 'is-attending': member.isAttending }">
           <img
-            src="images/family/avataaars_{{ idx }}.png"
+            src="images/family/avatar_{{ idx }}.png"
             alt="{{ member }}"
-            [ngClass]="{ 'is-attending': member.isAttending }"
+            
             (click)="member.isAttending = !member.isAttending"
           />
           <div>
@@ -101,8 +101,10 @@
     </div>
   </div>
   <div class="dialog-actions">
-    <!-- <button (click)="deleteEvent()">Delete</button> -->
-    <button (click)="closeDialog()">Close</button>
+    @if(existingEvent) {
+      <button class="delete" (click)="deleteEvent()">Delete</button>
+    }
+    <button (click)="closeDialog()">Cancel</button>
     <button class="primary" (click)="saveEvent()">Save</button>
   </div>
 </div>

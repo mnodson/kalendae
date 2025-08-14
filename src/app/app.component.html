@@ -48,12 +48,19 @@
   </div>
 
   <div class="app-week-view">
-    <app-week-view></app-week-view>
+    <app-week-view (eventClicked)="handleEventClick($event)" (cellClicked)="handleCellClick($event)"></app-week-view>
   </div>
 </div>
 
 @if (eventDialogOpen()) {
-  <app-event-dialog [eventDate]="selectedDate" (dialogClosed)="handleEventDialogClose()"></app-event-dialog>
+  <app-event-dialog 
+    [eventDate]="selectedDate" 
+    [existingEvent]="selectedEvent"
+    [preSelectedMember]="selectedMember"
+    (dialogClosed)="handleEventDialogClose()" 
+    (eventSaved)="handleEventSaved()"
+    (eventDeleted)="handleEventDeleted()">
+  </app-event-dialog>
 }
 
 <router-outlet />

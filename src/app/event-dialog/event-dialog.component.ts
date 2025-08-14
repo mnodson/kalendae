@@ -39,7 +39,11 @@ import {
 })
 export class EventDialogComponent {
   @Input() eventDate: Date = new Date();
+  @Input() existingEvent: any = null;
+  @Input() preSelectedMember: string | null = null;
   @Output() dialogClosed = new EventEmitter<void>();
+  @Output() eventSaved = new EventEmitter<void>();
+  @Output() eventDeleted = new EventEmitter<void>();
 
   eventTitle: any;
   eventDescription: any;
@@ -49,12 +53,12 @@ export class EventDialogComponent {
   eventDuration: string = '';
   isAllDay: boolean = false;
 
-  public readonly eventAttendance: {name: string, isAttending: boolean}[] = [
-    {name: 'Donna', isAttending: false },
-    {name: 'Mark', isAttending: false },
-    {name: 'Zara', isAttending: false },
-    {name: 'Macy', isAttending: false },
-    {name: 'Julia', isAttending: false }
+  public readonly eventAttendance: { name: string, isAttending: boolean }[] = [
+    { name: 'Donna', isAttending: false },
+    { name: 'Mark', isAttending: false },
+    { name: 'Zara', isAttending: false },
+    { name: 'Macy', isAttending: false },
+    { name: 'Julia', isAttending: false }
   ];
 
   private geocoderAutocomplete!: GeocoderAutocomplete;
@@ -72,11 +76,20 @@ export class EventDialogComponent {
     this.registerFormEventHandlers();
     this.setupGeocoder();
 
-    this.eventStart.setValue(
-      this.eventDate
-        ? DateHelpers.formatHtmlDateTime(this.eventDate)
-        : DateHelpers.formatHtmlDateTime(new Date())
-    );
+    if (this.existingEvent) {
+      this.populateExistingEvent();
+    } else {
+      this.eventStart.setValue(
+        this.eventDate
+          ? DateHelpers.formatHtmlDateTime(this.eventDate)
+          : DateHelpers.formatHtmlDateTime(new Date())
+      );
+      
+      // Pre-select the participant if one was specified
+      if (this.preSelectedMember) {
+        this.preSelectParticipant(this.preSelectedMember);
+      }
+    }
   }
 
   private setupGeocoder() {
@@ -95,7 +108,10 @@ export class EventDialogComponent {
     );
 
     this.geocoderAutocomplete.on('select', (event) => {
-      this.eventLocation = event.properties.formatted;
+      if (event) {
+        this.eventLocation = event.properties.formatted;
+
+      }
     });
   }
 
@@ -137,10 +153,85 @@ export class EventDialogComponent {
   }
 
   deleteEvent() {
-    throw new Error('Method not implemented.');
+    if (this.existingEvent && this.existingEvent.id) {
+      this.deleteFromStorage(this.existingEvent.id);
+      this.eventDeleted.emit();
+      this.closeDialog();
+    }
   }
   saveEvent() {
-    throw new Error('Method not implemented.');
+    const eventData = {
+      id: this.existingEvent ? this.existingEvent.id : this.generateEventId(),
+      title: this.eventTitle || '',
+      description: this.eventDescription || '',
+      location: this.eventLocation || '',
+      isAllDay: this.isAllDay,
+      startTime: this.eventStart.value,
+      endTime: this.eventEnd.value,
+      participants: this.eventAttendance.filter(participant => participant.isAttending).map(participant => participant.name),
+      createdAt: this.existingEvent ? this.existingEvent.createdAt : new Date().toISOString()
+    };
+
+    if (this.existingEvent) {
+      this.updateInStorage(eventData);
+    } else {
+      this.saveToStorage(eventData);
+    }
+    
+    this.eventSaved.emit();
+    this.closeDialog();
+  }
+
+  private generateEventId(): string {
+    return `event_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+  }
+
+  private saveToStorage(eventData: any): void {
+    const existingEvents = this.getEventsFromStorage();
+    existingEvents.push(eventData);
+    localStorage.setItem('kalendae_events', JSON.stringify(existingEvents));
+  }
+
+  private getEventsFromStorage(): any[] {
+    const stored = localStorage.getItem('kalendae_events');
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  private updateInStorage(eventData: any): void {
+    const existingEvents = this.getEventsFromStorage();
+    const eventIndex = existingEvents.findIndex(event => event.id === eventData.id);
+    if (eventIndex !== -1) {
+      existingEvents[eventIndex] = eventData;
+      localStorage.setItem('kalendae_events', JSON.stringify(existingEvents));
+    }
+  }
+
+  private deleteFromStorage(eventId: string): void {
+    const existingEvents = this.getEventsFromStorage();
+    const filteredEvents = existingEvents.filter(event => event.id !== eventId);
+    localStorage.setItem('kalendae_events', JSON.stringify(filteredEvents));
+  }
+
+  private populateExistingEvent(): void {
+    this.eventTitle = this.existingEvent.title;
+    this.eventDescription = this.existingEvent.description;
+    this.eventLocation = this.existingEvent.location;
+    this.isAllDay = this.existingEvent.isAllDay;
+    
+    this.eventStart.setValue(this.existingEvent.startTime);
+    this.eventEnd.setValue(this.existingEvent.endTime);
+    
+    // Set participant attendance
+    this.eventAttendance.forEach(member => {
+      member.isAttending = this.existingEvent.participants.includes(member.name);
+    });
+  }
+
+  private preSelectParticipant(memberName: string): void {
+    const member = this.eventAttendance.find(m => m.name === memberName);
+    if (member) {
+      member.isAttending = true;
+    }
   }
 
   closeDialog() {
@@ -150,7 +241,7 @@ export class EventDialogComponent {
   toggleAllDay() {
     if (this.isAllDay) {
       this.eventStart.setValue(DateHelpers.formatHtmlDate(this.eventDate));
-      this.eventEnd.setValue(DateHelpers.formatHtmlDate(addDays(this.eventDate, 1)));
+      this.eventEnd.setValue(DateHelpers.formatHtmlDate(this.eventDate));
     } else {
       this.eventStart.setValue(DateHelpers.formatHtmlDateTime(this.eventDate));
       this.eventEnd.setValue(DateHelpers.formatHtmlDateTime(addDays(this.eventDate, 1)));

@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, signal } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -24,7 +24,11 @@ import { EventDialogComponent } from './event-dialog/event-dialog.component';
 export class AppComponent implements OnInit {
   public calendarFullscreen: boolean = false;
   public selectedDate: Date = new Date();
+  public selectedEvent: any = null;
+  public selectedMember: string | null = null;
   public eventDialogOpen = signal(false);
+
+  @ViewChild(WeekViewComponent) weekViewComponent!: WeekViewComponent;
 
   constructor(private firestore: Firestore) {}
   
@@ -43,11 +47,37 @@ export class AppComponent implements OnInit {
   }
 
   handleEventDialogOpen(event: Date) {
+    this.selectedEvent = null;
+    this.selectedMember = null;
     this.eventDialogOpen.set(true);
     this.selectedDate = event;
   }
 
+  handleCellClick(cellData: {date: Date, member: string}) {
+    this.selectedEvent = null;
+    this.selectedMember = cellData.member;
+    this.selectedDate = cellData.date;
+    this.eventDialogOpen.set(true);
+  }
+
+  handleEventClick(event: any) {
+    this.selectedEvent = event;
+    this.selectedMember = null;
+    this.selectedDate = new Date(event.startTime);
+    this.eventDialogOpen.set(true);
+  }
+
   handleEventDialogClose() {
+    this.selectedEvent = null;
+    this.selectedMember = null;
     this.eventDialogOpen.set(false);
+  }
+
+  handleEventSaved() {
+    this.weekViewComponent.refreshEvents();
+  }
+
+  handleEventDeleted() {
+    this.weekViewComponent.refreshEvents();
   }
 }
