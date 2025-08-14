@@ -77,39 +77,55 @@
     <h4>Upcoming Events</h4>
   </div>
   
-  <div class="upcoming-events-grid">
-    @for(member of familyMembers; track member; let idx = $index) {
-      <div class="member-upcoming-section">
-        <div class="member-header">
-          <img src="images/family/avatar_{{ idx }}.png" alt="{{ member }}" />
-          <span class="member-name">{{ member }}</span>
-        </div>
-        
-        <div class="upcoming-events-list">
-          @for(event of getUpcomingEventsForMember(member); track event.id) {
-            <div class="upcoming-event-item" (click)="onEventClick(event)">
-              <div class="event-date-badge">{{ formatUpcomingEventDate(event) }}</div>
-              <div class="event-details">
-                <div class="event-title">{{ event.title }}</div>
-                <div class="event-time">{{ formatEventTime(event) }}</div>
-              </div>
-              @if(getOtherParticipants(event, member).length > 0) {
-                <div class="event-participants">
-                  @for(participant of getOtherParticipants(event, member); track participant) {
-                    <img 
-                      src="images/family/avatar_{{ getFamilyMemberAvatarIndex(participant) }}.png" 
-                      alt="{{ participant }}"
-                      class="participant-avatar-small"
-                      title="{{ participant }}"
-                    />
-                  }
-                </div>
-              }
+  <div class="upcoming-events-list">
+    @for(event of getAllUpcomingEvents(); track event.id) {
+      <div class="event-item" (click)="onEventClick(event)">
+        <div class="event-main">
+          <div class="event-header">
+            <div class="event-title">{{ event.title }}</div>
+            <div class="event-datetime">{{ formatEventDateTime(event) }}</div>
+          </div>
+          
+          @if(event.description) {
+            <div class="event-description">{{ event.description }}</div>
+          }
+          
+          @if(event.location) {
+            <div class="event-location">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 21c3.5-3.6 7-6.824 7-10.8C19 6.224 15.866 3 12 3s-7 3.224-7 7.2c0 3.976 3.5 7.2 7 10.8" />
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 12a2 2 0 1 0 0-4a2 2 0 0 0 0 4" />
+              </svg>
+              <span>{{ event.location }}</span>
             </div>
-          } @empty {
-            <div class="no-upcoming-events">No upcoming events</div>
           }
         </div>
+        
+        <div class="event-participants">
+          @for(participant of event.participants; track participant; let idx = $index) {
+            <div 
+              class="participant-avatar" 
+              [style.background-color]="getFamilyMemberColor(participant)"
+              title="{{ participant }}"
+            >
+              <img 
+                src="images/family/avatar_{{ getFamilyMemberAvatarIndex(participant) }}.png" 
+                alt="{{ participant }}"
+              />
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="no-upcoming-events">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+          <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M16.5 5V3m-9 2V3M3.25 8h17.5M3 10.044c0-2.115 0-3.173.436-3.981a3.9 3.9 0 0 1 1.748-1.651C6.04 4 7.16 4 9.4 4h5.2c2.24 0 3.36 0 4.216.412c.753.362 1.364.94 1.748 1.65c.436.81.436 1.868.436 3.983v4.912c0 2.115 0 3.173-.436 3.981a3.9 3.9 0 0 1-1.748 1.651C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.412a3.9 3.9 0 0 1-1.748-1.65C3 18.128 3 17.07 3 14.955z" />
+        </svg>
+        <div class="no-events-text">No upcoming events</div>
+        <div class="no-events-subtext">Your calendar is clear for the next two weeks</div>
       </div>
     }
   </div>

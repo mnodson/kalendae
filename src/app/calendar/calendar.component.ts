@@ -266,4 +266,62 @@ export class CalendarComponent implements OnInit {
   onEventClick(event: Event): void {
     this.eventClicked.emit(event);
   }
+
+  getAllUpcomingEvents(daysAhead: number = 14): Event[] {
+    const today = startOfDay(new Date());
+    const futureDate = addDays(today, daysAhead);
+
+    const upcomingEvents = this.events.filter(event => {
+      if (!event.startTime) return false;
+      
+      let eventDate: Date;
+      if (event.isAllDay) {
+        const dateString = event.startTime.split('T')[0];
+        const [year, month, day] = dateString.split('-').map(Number);
+        eventDate = new Date(year, month - 1, day);
+      } else {
+        eventDate = startOfDay(new Date(event.startTime));
+      }
+      
+      return eventDate > today && eventDate <= futureDate;
+    });
+
+    return upcomingEvents.sort((a, b) => {
+      const aDate = new Date(a.startTime!).getTime();
+      const bDate = new Date(b.startTime!).getTime();
+      return aDate - bDate;
+    });
+  }
+
+  getEventParticipantColors(event: Event): string[] {
+    return event.participants.map(participant => this.getFamilyMemberColor(participant));
+  }
+
+  formatEventDateTime(event: Event): string {
+    if (!event.startTime) return '';
+    
+    let eventDate: Date;
+    if (event.isAllDay) {
+      const dateString = event.startTime.split('T')[0];
+      const [year, month, day] = dateString.split('-').map(Number);
+      eventDate = new Date(year, month - 1, day);
+    } else {
+      eventDate = new Date(event.startTime);
+    }
+    
+    const today = startOfDay(new Date());
+    const tomorrow = addDays(today, 1);
+    
+    let dateStr = '';
+    if (isSameDay(eventDate, tomorrow)) {
+      dateStr = 'Tomorrow';
+    } else if (eventDate.getTime() - today.getTime() < 7 * 24 * 60 * 60 * 1000) {
+      dateStr = format(eventDate, 'EEEE'); // Day name for this week
+    } else {
+      dateStr = format(eventDate, 'MMM d'); // Month and day for further dates
+    }
+    
+    const timeStr = this.formatEventTime(event);
+    return `${dateStr} • ${timeStr}`;
+  }
 }
