@@ -48,6 +48,8 @@ export class CalendarComponent implements OnInit {
     'Julia'
   ];
 
+  public readonly upcomingEventsEnabled: boolean = false;
+
   constructor() {}
   
   ngOnInit() {
@@ -283,7 +285,7 @@ export class CalendarComponent implements OnInit {
         eventDate = startOfDay(new Date(event.startTime));
       }
       
-      return eventDate > today && eventDate <= futureDate;
+      return eventDate >= today && eventDate <= futureDate;
     });
 
     return upcomingEvents.sort((a, b) => {

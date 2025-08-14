@@ -177,6 +177,7 @@
         &.is-attending {
           img {
             border: 3px solid #50a054;
+            opacity: 1;
           }
           div {
             color: #50a054;
@@ -193,11 +194,12 @@
       box-sizing: border-box;
       transition: border 0.1s ease;
       border: 2px solid #bdbdbd;
-
+      opacity: 0.6;
 
 
       &:hover {
         border: 3px solid #bdbdbd;
+        opacity: 1;
       }
 
     }

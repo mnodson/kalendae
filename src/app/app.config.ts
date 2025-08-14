@@ -5,6 +5,8 @@ import { routes } from './app.routes';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideOAuthClient } from 'angular-oauth2-oidc';
+import { provideHttpClient } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,7 +21,9 @@ export const appConfig: ApplicationConfig = {
       messagingSenderId: "860250158150", 
       measurementId: "G-PLNTKJCDW8" })), 
     provideStorage(() => getStorage()),
-    provideFirestore(() => getFirestore())
+    provideFirestore(() => getFirestore()),
+    provideHttpClient(),
+    provideOAuthClient()
   ]
 };
 

@@ -58,7 +58,7 @@
     <tbody>
       @for(date of currentWeek; track date) {
       <tr>
-        <td>
+        <td [ngClass]="{ 'expired-date': date < today }">
           <div class="day-name">{{ date | date : "EEEE" }}</div>
           <div class="day-number">
             {{ date | date : "d"
@@ -66,7 +66,7 @@
           </div>
         </td>
         @for(member of familyMembers; track member) {
-        <td [ngClass]="{ expired: date.getDate() < today.getDate() }" (click)="onCellClick(date, member, $event)">
+        <td [ngClass]="{ expired: date < today }" (click)="onCellClick(date, member, $event)">
           <div class="events-container">
             <div class="all-day-events">
               @for(event of getEventsForDateAndParticipantIncludingMultiDay(date, member); track event.id) {

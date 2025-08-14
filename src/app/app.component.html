@@ -2,7 +2,12 @@
   <div class="app-header">
     <h1>Kalendae</h1>
 
+    <div>
+       {{ name() }}
+    </div>
     <div class="actions">
+      <button (click)="loginWithGoogle()">Login</button>
+      <button (click)="logout()">Logout</button>
       <button (click)="toggleCalendarFullscreen()">
         <svg
           *ngIf="calendarFullscreen; else maximize"

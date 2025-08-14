@@ -1,0 +1,10 @@
+import { AuthConfig } from 'angular-oauth2-oidc';
+
+export const authConfig: AuthConfig = {
+  issuer: 'https://accounts.google.com',
+  redirectUri: window.location.origin,
+  clientId: '989513238686-d1l0phissm5uj1p2140t71p8i5fem62i.apps.googleusercontent.com',
+  scope: 'openid profile email https://www.googleapis.com/auth/calendar.readonly',
+  strictDiscoveryDocumentValidation: false,
+
+};
