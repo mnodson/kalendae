@@ -29,6 +29,7 @@ export class AppComponent implements OnInit {
   public eventDialogOpen = signal(false);
 
   @ViewChild(WeekViewComponent) weekViewComponent!: WeekViewComponent;
+  @ViewChild(CalendarComponent) calendarComponent!: CalendarComponent;
 
   constructor(private firestore: Firestore) {}
   
@@ -51,6 +52,9 @@ export class AppComponent implements OnInit {
     this.selectedMember = null;
     this.eventDialogOpen.set(true);
     this.selectedDate = event;
+    
+    // Update week view to show the selected date's week
+    this.weekViewComponent.updateToDate(event);
   }
 
   handleCellClick(cellData: {date: Date, member: string}) {
@@ -58,6 +62,9 @@ export class AppComponent implements OnInit {
     this.selectedMember = cellData.member;
     this.selectedDate = cellData.date;
     this.eventDialogOpen.set(true);
+    
+    // Ensure week view is showing the correct week for the selected date
+    this.weekViewComponent.updateToDate(cellData.date);
   }
 
   handleEventClick(event: any) {
@@ -65,6 +72,9 @@ export class AppComponent implements OnInit {
     this.selectedMember = null;
     this.selectedDate = new Date(event.startTime);
     this.eventDialogOpen.set(true);
+    
+    // Update week view to show the event's week
+    this.weekViewComponent.updateToDate(new Date(event.startTime));
   }
 
   handleEventDialogClose() {
@@ -75,9 +85,11 @@ export class AppComponent implements OnInit {
 
   handleEventSaved() {
     this.weekViewComponent.refreshEvents();
+    this.calendarComponent.refreshEvents();
   }
 
   handleEventDeleted() {
     this.weekViewComponent.refreshEvents();
+    this.calendarComponent.refreshEvents();
   }
 }

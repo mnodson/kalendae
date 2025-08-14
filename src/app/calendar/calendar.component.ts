@@ -1,6 +1,18 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
-import { endOfHour, roundToNearestHours } from 'date-fns';
+import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { endOfHour, roundToNearestHours, isSameDay, startOfDay } from 'date-fns';
+
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  isAllDay: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  participants: string[];
+  createdAt: string;
+}
 
 @Component({
   selector: 'app-calendar',
@@ -8,7 +20,7 @@ import { endOfHour, roundToNearestHours } from 'date-fns';
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.scss',
 })
-export class CalendarComponent {
+export class CalendarComponent implements OnInit {
   @Output() openEventDialog = new EventEmitter<Date>();
 
   days: any[] = [];
@@ -25,9 +37,21 @@ export class CalendarComponent {
     'Sunday',
   ];
   datesInCurrentMonth: Date[] = [];
+  events: Event[] = [];
+  
+  public readonly familyMembers: string[] = [
+    'Donna',
+    'Mark',
+    'Zara',
+    'Macy',
+    'Julia'
+  ];
 
-  constructor() {
+  constructor() {}
+  
+  ngOnInit() {
     this.generateCalendar();
+    this.loadEvents();
   }
 
   generateCalendar() {
@@ -101,5 +125,66 @@ export class CalendarComponent {
       selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(),
       nextClosetHour.getHours(), nextClosetHour.getMinutes());
     this.openEventDialog.emit(selectedDateWithTime);
+  }
+
+  private loadEvents(): void {
+    const stored = localStorage.getItem('kalendae_events');
+    this.events = stored ? JSON.parse(stored) : [];
+  }
+
+  public refreshEvents(): void {
+    this.loadEvents();
+  }
+
+  getFamilyMembersWithEventsOnDate(date: Date): string[] {
+    const membersWithEvents: string[] = [];
+    
+    for (const member of this.familyMembers) {
+      const hasEvents = this.events.some(event => {
+        if (!event.startTime || !event.participants.includes(member)) return false;
+        
+        // Handle both single-day and multi-day events
+        let eventStartDate: Date;
+        let eventEndDate: Date;
+        
+        if (event.isAllDay) {
+          // For all-day events, parse dates as local to avoid timezone issues
+          const startDateString = event.startTime.split('T')[0];
+          const [startYear, startMonth, startDay] = startDateString.split('-').map(Number);
+          eventStartDate = new Date(startYear, startMonth - 1, startDay);
+          
+          if (event.endTime) {
+            const endDateString = event.endTime.split('T')[0];
+            const [endYear, endMonth, endDay] = endDateString.split('-').map(Number);
+            eventEndDate = new Date(endYear, endMonth - 1, endDay);
+          } else {
+            eventEndDate = eventStartDate;
+          }
+        } else {
+          eventStartDate = startOfDay(new Date(event.startTime));
+          eventEndDate = event.endTime ? startOfDay(new Date(event.endTime)) : eventStartDate;
+        }
+        
+        const currentDay = startOfDay(date);
+        return currentDay >= eventStartDate && currentDay <= eventEndDate;
+      });
+      
+      if (hasEvents) {
+        membersWithEvents.push(member);
+      }
+    }
+    
+    return membersWithEvents;
+  }
+
+  getFamilyMemberColor(memberName: string): string {
+    const colorMap: { [key: string]: string } = {
+      'Donna': '#ff9800', // Orange
+      'Mark': '#4caf50',  // Green
+      'Zara': '#2196f3',  // Blue
+      'Macy': '#e91e63',  // Pink
+      'Julia': '#9c27b0'  // Purple
+    };
+    return colorMap[memberName] || '#757575';
   }
 }

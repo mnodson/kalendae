@@ -56,7 +56,12 @@
     <div class="dates" style="--c-offset: {{ startOfMonthOffset }}">
       @for(date of datesInCurrentMonth; track date; let idx = $index) {
       <div class="date" [ngClass]="{ today: isToday(date) }" (click)="selectDate(date)">
-        {{ date | date : "d" }}
+        <div class="date-number">{{ date | date : "d" }}</div>
+        <div class="event-indicators">
+          @for(member of getFamilyMembersWithEventsOnDate(date); track member) {
+            <div class="event-dot" [style.background-color]="getFamilyMemberColor(member)" [title]="member + ' has events'"></div>
+          }
+        </div>
       </div>
       }
     </div>

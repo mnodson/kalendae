@@ -43,10 +43,10 @@ export class WeekViewComponent implements OnInit {
     this.loadEvents();
   }
 
-  generateWeekView() {
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Set to Monday
+  generateWeekView(targetDate?: Date) {
+    const baseDate = targetDate || new Date();
+    const startOfWeek = new Date(baseDate);
+    startOfWeek.setDate(baseDate.getDate() - baseDate.getDay() + 1); // Set to Monday
 
     this.currentWeek = Array.from({ length: 7 }, (_, i) => {
       const date = new Date(startOfWeek);
@@ -72,6 +72,11 @@ export class WeekViewComponent implements OnInit {
   }
 
   public refreshEvents(): void {
+    this.loadEvents();
+  }
+
+  public updateToDate(date: Date): void {
+    this.generateWeekView(date);
     this.loadEvents();
   }
 
