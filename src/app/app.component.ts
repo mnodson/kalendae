@@ -23,7 +23,7 @@ import { EventDialogComponent } from './event-dialog/event-dialog.component';
 })
 export class AppComponent implements OnInit {
   public calendarFullscreen: boolean = false;
-  public selectedDate: Date | null = null;
+  public selectedDate: Date = new Date();
   public eventDialogOpen = signal(false);
 
   constructor(private firestore: Firestore) {}

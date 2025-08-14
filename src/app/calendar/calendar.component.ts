@@ -1,5 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
+import { endOfHour, roundToNearestHours } from 'date-fns';
 
 @Component({
   selector: 'app-calendar',
@@ -94,6 +95,11 @@ export class CalendarComponent {
   }
 
   selectDate(selectedDate: Date) {
-    this.openEventDialog.emit(selectedDate);
+    const nextClosetHour = roundToNearestHours(new Date(), { roundingMethod: 'ceil' });
+    
+    const selectedDateWithTime = new Date(
+      selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(),
+      nextClosetHour.getHours(), nextClosetHour.getMinutes());
+    this.openEventDialog.emit(selectedDateWithTime);
   }
 }
