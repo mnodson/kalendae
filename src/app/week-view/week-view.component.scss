@@ -5,6 +5,7 @@
   flex-direction: column;
   padding: 0 1rem;
   border-left: 1px solid #e0e0e0;
+  overflow: hidden; // Prevent default scrolling
 }
 
 h2 {
@@ -263,6 +264,15 @@ h2 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .google-calendar-icon {
+      flex-shrink: 0;
+      color: #4285f4;
+      margin-right: 2px;
+    }
   }
 
   .event-time {
@@ -342,6 +352,111 @@ h2 {
       font-style: italic;
       color: #1976d2;
       font-weight: 500;
+    }
+  }
+
+  &.google-calendar {
+    border-left: 3px solid #4285f4 !important;
+    background: rgba(66, 133, 244, 0.08);
+    
+    &.all-day {
+      background: rgba(66, 133, 244, 0.12);
+      border-left: 3px solid #4285f4 !important;
+    }
+    
+    &.timed {
+      background: rgba(66, 133, 244, 0.06);
+      border-left: 3px solid #4285f4 !important;
+    }
+    
+    &.multi-day {
+      background: linear-gradient(90deg, rgba(66, 133, 244, 0.12) 0%, rgba(66, 133, 244, 0.06) 100%);
+      border-left: 4px solid #4285f4 !important;
+      
+      &.all-day {
+        background: linear-gradient(90deg, rgba(66, 133, 244, 0.18) 0%, rgba(66, 133, 244, 0.10) 100%);
+        border-left: 4px solid #4285f4 !important;
+      }
+      
+      &.timed {
+        border-left: 4px solid #4285f4 !important;
+      }
+    }
+  }
+
+  &.highlighted {
+    position: relative;
+    z-index: 10;
+    transition: all 0.3s ease;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, 
+        rgba(33, 150, 243, 0.15) 0%,   // Light blue start
+        rgba(33, 150, 243, 0.08) 50%,  // Medium blue
+        rgba(33, 150, 243, 0.04) 100%  // Very light blue end
+      );
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    // Ensure content stays above the gradient overlay
+    .event-content,
+    .event-participants {
+      position: relative;
+      z-index: 2;
+    }
+    
+    &.multi-day {
+      &::before {
+        background: linear-gradient(90deg, 
+          rgba(33, 150, 243, 0.18) 0%,   // Slightly stronger for multi-day
+          rgba(33, 150, 243, 0.12) 50%,  
+          rgba(33, 150, 243, 0.06) 100%  
+        );
+      }
+      
+      &.all-day::before {
+        background: linear-gradient(90deg, 
+          rgba(33, 150, 243, 0.22) 0%,   // Strongest for all-day multi-day
+          rgba(33, 150, 243, 0.15) 50%,    
+          rgba(33, 150, 243, 0.08) 100%   
+        );
+      }
+      
+      &.google-calendar::before {
+        background: linear-gradient(90deg, 
+          rgba(66, 133, 244, 0.18) 0%,   // Google blue gradient
+          rgba(66, 133, 244, 0.12) 50%,    
+          rgba(66, 133, 244, 0.06) 100%   
+        );
+      }
+    }
+    
+    &:not(.multi-day)::before {
+      background: linear-gradient(90deg, 
+        rgba(33, 150, 243, 0.12) 0%,    
+        rgba(33, 150, 243, 0.08) 50%,    
+        rgba(33, 150, 243, 0.04) 100%   
+      );
+    }
+    
+    .event-title {
+      color: #1565c0;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+    
+    .event-time {
+      color: #1976d2;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
     }
   }
 }

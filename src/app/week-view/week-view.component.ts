@@ -8,6 +8,7 @@ import {
   inject,
   effect,
   OnDestroy,
+  HostListener,
 } from '@angular/core';
 import {
   format,
@@ -29,6 +30,7 @@ interface Event {
   endTime: string | null;
   participants: string[];
   createdAt: string;
+  isGoogleCalendarEvent?: boolean;
 }
 
 @Component({
@@ -48,6 +50,9 @@ export class WeekViewComponent implements OnInit, OnDestroy {
     'Julia',
   ];
   public events: Event[] = [];
+  public hoveredEventId: string | null = null;
+  private lastScrollTime: number = 0;
+  private scrollThrottleMs: number = 200; // Minimum time between scroll actions
 
   @Output() eventClicked = new EventEmitter<Event>();
   @Output() cellClicked = new EventEmitter<{ date: Date; member: string }>();
@@ -56,12 +61,19 @@ export class WeekViewComponent implements OnInit, OnDestroy {
   authService = inject(AuthGoogleService);
   googleCalendarEvents$: Subscription | undefined;
 
+  googleCalendarEventPoll: any;
+
   constructor() {
     effect(() => {
       const profile = this.authService.profile();
       if (profile) {
+        // Load Google calendar events
         this.loadGoogleCalendarEvents();
-        console.log('Loaded Google Calendar events for:', profile);
+
+        // Then setup a poll to load every 10 seconds
+        this.googleCalendarEventPoll = setInterval(() => {
+          this.loadGoogleCalendarEvents();
+        }, 10000)
       }
     });
   }
@@ -69,8 +81,9 @@ export class WeekViewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.googleCalendarEvents$) {
       this.googleCalendarEvents$.unsubscribe();
-      console.log('Unsubscribed from Google Calendar events');
     }
+
+    clearInterval(this.googleCalendarEventPoll);
   }
 
   ngOnInit() {
@@ -79,6 +92,19 @@ export class WeekViewComponent implements OnInit, OnDestroy {
   }
 
   loadGoogleCalendarEvents() {
+    // Check if token is valid before making the request
+    if (!this.authService.isTokenValid()) {
+      console.log('Token is invalid, attempting refresh...');
+      this.authService.refreshToken().then((success) => {
+        if (success) {
+          this.loadGoogleCalendarEvents(); // Retry after successful refresh
+        } else {
+          console.error('Failed to refresh token, skipping Google Calendar sync');
+        }
+      });
+      return;
+    }
+
     const header = new HttpHeaders({
       Authorization: `Bearer ${this.authService.getAccessToken()}`,
     });
@@ -87,8 +113,8 @@ export class WeekViewComponent implements OnInit, OnDestroy {
       .get('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
         headers: header,
       })
-      .subscribe((events) => {
-        console.log('Google Calendar Events:', events);
+      .subscribe({
+        next: (events) => {
         const items = (events as any).items || [];
         for (const item of items) {
           const kalendaeEvent: Event = {
@@ -101,13 +127,28 @@ export class WeekViewComponent implements OnInit, OnDestroy {
             isAllDay: !!item.start?.date,
             location: item.location || '',
             participants: item.description.split(',').map((p: string) => p.trim()),
+            isGoogleCalendarEvent: true,
           };
 
-          this.events.push({
-            ...kalendaeEvent,
+          if (this.events.find(e => e.id === kalendaeEvent.id) === undefined) {
+            this.events.push(
+              kalendaeEvent,
+            );
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error loading Google Calendar events:', error);
+        if (error.status === 401) {
+          console.log('Unauthorized - attempting token refresh...');
+          this.authService.refreshToken().then((success) => {
+            if (success) {
+              this.loadGoogleCalendarEvents(); // Retry after successful refresh
+            }
           });
         }
-      });
+      }
+    });
   }
 
   generateWeekView(targetDate?: Date) {
@@ -143,12 +184,20 @@ export class WeekViewComponent implements OnInit, OnDestroy {
   }
 
   public refreshEvents(): void {
+    // Preserve Google Calendar events when refreshing
+    const googleEvents = this.events.filter(event => event.isGoogleCalendarEvent);
     this.loadEvents();
+    // Re-add Google Calendar events that aren't duplicates
+    googleEvents.forEach(googleEvent => {
+      if (!this.events.find(e => e.id === googleEvent.id)) {
+        this.events.push(googleEvent);
+      }
+    });
   }
 
   public updateToDate(date: Date): void {
     this.generateWeekView(date);
-    this.loadEvents();
+    this.refreshEvents();
   }
 
   prevWeek(): void {
@@ -248,6 +297,46 @@ export class WeekViewComponent implements OnInit, OnDestroy {
     }
 
     this.cellClicked.emit({ date, member });
+  }
+
+  onEventMouseEnter(event: Event): void {
+    // Highlight multi-day events OR Google Calendar events
+    if (this.isMultiDayEvent(event) || event.isGoogleCalendarEvent) {
+      this.hoveredEventId = event.id;
+    }
+  }
+
+  onEventMouseLeave(event: Event): void {
+    // Clear highlight for multi-day events OR Google Calendar events
+    if (this.isMultiDayEvent(event) || event.isGoogleCalendarEvent) {
+      this.hoveredEventId = null;
+    }
+  }
+
+  isEventHighlighted(event: Event): boolean {
+    return this.hoveredEventId === event.id;
+  }
+
+  @HostListener('wheel', ['$event'])
+  onWheelScroll(event: WheelEvent): void {
+    // Prevent default scrolling behavior
+    event.preventDefault();
+    
+    // Throttle scroll events to prevent rapid navigation
+    const currentTime = Date.now();
+    if (currentTime - this.lastScrollTime < this.scrollThrottleMs) {
+      return;
+    }
+    this.lastScrollTime = currentTime;
+    
+    // Determine scroll direction
+    if (event.deltaY > 0) {
+      // Scroll down = previous week
+      this.prevWeek();
+    } else if (event.deltaY < 0) {
+      // Scroll up = next week
+      this.nextWeek();
+    }
   }
 
   isMultiDayEvent(event: Event): boolean {

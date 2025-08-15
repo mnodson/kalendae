@@ -39,7 +39,7 @@
   </div>
 </div>
 
-<div class="week-grid">
+<div class="week-grid" (wheel)="onWheelScroll($event)">
   <table>
     <thead>
       <tr>
@@ -74,9 +74,24 @@
                   <div class="event-wrapper" 
                        [style.margin-left.px]="isMultiDayEvent(event) ? getEventColumn(event, member) * 24 : 0"
                        [attr.data-event-id]="event.id">
-                    <div class="event-item all-day" [ngClass]="{ 'multi-day': isMultiDayEvent(event) }" (click)="onEventClick(event)">
+                    <div class="event-item all-day" 
+                         [ngClass]="{ 
+                           'multi-day': isMultiDayEvent(event), 
+                           'google-calendar': event.isGoogleCalendarEvent,
+                           'highlighted': isEventHighlighted(event)
+                         }" 
+                         (click)="onEventClick(event)"
+                         (mouseenter)="onEventMouseEnter(event)"
+                         (mouseleave)="onEventMouseLeave(event)">
                       <div class="event-content">
-                        <div class="event-title">{{ event.title }}</div>
+                        <div class="event-title">
+                          @if(event.isGoogleCalendarEvent) {
+                            <svg class="google-calendar-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
+                              <path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                            </svg>
+                          }
+                          {{ event.title }}
+                        </div>
                         <div class="event-time">
                           @if(isMultiDayEvent(event)) {
                             Day {{ getEventDayNumber(event, date).dayNumber }} of {{ getEventDayNumber(event, date).totalDays }}
@@ -108,9 +123,24 @@
                   <div class="event-wrapper" 
                        [style.margin-left.px]="isMultiDayEvent(event) ? getEventColumn(event, member) * 24 : 0"
                        [attr.data-event-id]="event.id">
-                    <div class="event-item timed" [ngClass]="{ 'multi-day': isMultiDayEvent(event) }" (click)="onEventClick(event)">
+                    <div class="event-item timed" 
+                         [ngClass]="{ 
+                           'multi-day': isMultiDayEvent(event), 
+                           'google-calendar': event.isGoogleCalendarEvent,
+                           'highlighted': isEventHighlighted(event)
+                         }" 
+                         (click)="onEventClick(event)"
+                         (mouseenter)="onEventMouseEnter(event)"
+                         (mouseleave)="onEventMouseLeave(event)">
                       <div class="event-content">
-                        <div class="event-title">{{ event.title }}</div>
+                        <div class="event-title">
+                          @if(event.isGoogleCalendarEvent) {
+                            <svg class="google-calendar-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
+                              <path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                            </svg>
+                          }
+                          {{ event.title }}
+                        </div>
                         <div class="event-time">
                           @if(isMultiDayEvent(event)) {
                             Day {{ getEventDayNumber(event, date).dayNumber }} of {{ getEventDayNumber(event, date).totalDays }}

@@ -12,6 +12,7 @@ interface Event {
   endTime: string | null;
   participants: string[];
   createdAt: string;
+  isGoogleCalendarEvent?: boolean;
 }
 
 @Component({
@@ -136,7 +137,15 @@ export class CalendarComponent implements OnInit {
   }
 
   public refreshEvents(): void {
+    // Preserve Google Calendar events when refreshing
+    const googleEvents = this.events.filter(event => event.isGoogleCalendarEvent);
     this.loadEvents();
+    // Re-add Google Calendar events that aren't duplicates
+    googleEvents.forEach(googleEvent => {
+      if (!this.events.find(e => e.id === googleEvent.id)) {
+        this.events.push(googleEvent);
+      }
+    });
   }
 
   getFamilyMembersWithEventsOnDate(date: Date): string[] {

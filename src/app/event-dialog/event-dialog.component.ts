@@ -218,8 +218,30 @@ export class EventDialogComponent {
     this.eventLocation = this.existingEvent.location;
     this.isAllDay = this.existingEvent.isAllDay;
     
-    this.eventStart.setValue(this.existingEvent.startTime);
-    this.eventEnd.setValue(this.existingEvent.endTime);
+    // Format date/time properly for HTML inputs
+    if (this.existingEvent.startTime) {
+      if (this.isAllDay) {
+        // For all-day events, use date format
+        const startDate = new Date(this.existingEvent.startTime);
+        this.eventStart.setValue(DateHelpers.formatHtmlDate(startDate));
+      } else {
+        // For timed events, convert to local datetime format
+        const startDate = new Date(this.existingEvent.startTime);
+        this.eventStart.setValue(DateHelpers.formatHtmlDateTime(startDate));
+      }
+    }
+    
+    if (this.existingEvent.endTime) {
+      if (this.isAllDay) {
+        // For all-day events, use date format
+        const endDate = new Date(this.existingEvent.endTime);
+        this.eventEnd.setValue(DateHelpers.formatHtmlDate(endDate));
+      } else {
+        // For timed events, convert to local datetime format
+        const endDate = new Date(this.existingEvent.endTime);
+        this.eventEnd.setValue(DateHelpers.formatHtmlDateTime(endDate));
+      }
+    }
     
     // Set participant attendance
     this.eventAttendance.forEach(member => {
